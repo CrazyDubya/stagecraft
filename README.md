@@ -1,9 +1,10 @@
 # stagecraft
 
 A consolidated suite of AI theatre/performance systems — a production framework,
-a 6-layer musical-theater generation pipeline, a 3D stage for AI actors, and a
-radio-drama streaming platform. Assembled 2026-09-13 from four repositories (see
-`docs/PROVENANCE.md`).
+a 6-layer musical-theater generation pipeline, a 3D stage for AI actors, a
+radio-drama streaming platform, and a multi-agent theater criticism system.
+Assembled 2026-09-13 from four repositories, extended 2026-09-13 with a fifth
+(see `docs/PROVENANCE.md`).
 
 ## Contents
 
@@ -13,6 +14,7 @@ radio-drama streaming platform. Assembled 2026-09-13 from four repositories (see
 | `pipeline/playwright` | 6-layer theater generation pipeline (Python, stdlib-only) |
 | `stage3d/theater-stage` | 3D theater stage for AI actors (Three.js, jest) |
 | `apps/dramas-fm` | Radio drama streaming platform (Next.js) |
+| `theater-critics/` | Multi-agent theater criticism system — AI critic ensemble (Ollama) analyzing musical theater across 18 evaluation dimensions, with `playwright_export.py` feeding the pipeline (Python) |
 
 ## Quick start
 
@@ -28,6 +30,9 @@ cd stage3d/theater-stage && npm ci && npm test
 
 # Dramas-FM app
 cd apps/dramas-fm && npm ci && npm run dev
+
+# Theater critics (needs Ollama models + pip install -r requirements.txt)
+cd theater-critics && python -m pytest
 ```
 
 See `docs/ARCHITECTURE.md` for the full layout and `docs/PROVENANCE.md` for
