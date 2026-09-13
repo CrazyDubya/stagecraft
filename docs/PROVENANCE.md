@@ -17,7 +17,7 @@ Full tree copied (framework package, CLI, tests, docs, examples).
 
 | Path | Source | Commit | Notes |
 |---|---|---|---|
-| `pipeline/playwright/` | `CrazyDubya/PlayWright` | `1dd5af93ab3990a794ec4a6c8ebcceea15415af7` (main) | `engines/` code only: 6-layer pipeline (`layer1_seeds` → `layer6_transformation`) + `orchestrator/` (21 .py files, stdlib-only); the ~590 process-doc markdowns stay in the archived source; `CREATIVE_METHODOLOGY.md` and `QUICK_START.md` curated into `docs/` |
+| `pipeline/playwright/` | `CrazyDubya/PlayWright` | `1dd5af93ab3990a794ec4a6c8ebcceea15415af7` (main) | `engines/` code only, kept as an `engines` package (the code uses absolute `from engines.core import ...`, so the package dir is preserved; add `pipeline/playwright/` to `sys.path`): 6-layer pipeline (`layer1_seeds` → `layer6_transformation`) + `orchestrator/` (21 .py files, stdlib-only); the ~590 process-doc markdowns stay in the archived source; `CREATIVE_METHODOLOGY.md` and `QUICK_START.md` curated into `docs/` |
 | `stage3d/theater-stage/` | `CrazyDubya/theater-stage` → `projects/scratch/` | `b5770511fe950a3491475220444fcba17278a1f6` (main) | Three.js 3D stage app kept as JS subproject with its own package.json |
 | `apps/dramas-fm/` | `CrazyDubya/dramas-fm` | `e1f56dd672a19dacbbb76c40e73e39f6c973d7f0` (dev) | Next.js 15 radio-drama platform kept intact with its own package.json and CI; `.env.local.example` contains a real Cloudflare **account ID** (identifier, not a secret) — token field is a placeholder |
 

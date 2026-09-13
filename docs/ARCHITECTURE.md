@@ -12,9 +12,12 @@ stagecraft/
                      # thespian/config, cli.py, tests/ (unit + integration)
   pipeline/
     playwright/      # PlayWright's 6-layer musical-theater generation pipeline
-                     # (Python, stdlib-only): layer1_seeds → layer2_foundation →
-                     # layer3_translation → layer4_manifestation → layer5_critique →
-                     # layer6_transformation + orchestrator/
+                     # (Python, stdlib-only), kept as an `engines` package because
+                     # the code uses absolute `from engines.core import ...`
+                     # (add pipeline/playwright/ to sys.path):
+                     # layer1_seeds → layer2_foundation → layer3_translation →
+                     # layer4_manifestation → layer5_critique → layer6_transformation
+                     # + orchestrator/
   stage3d/
     theater-stage/   # 3D theater stage for AI actors (Three.js): blocking markers,
                      # curtains, elevating platforms, lighting presets, save/load,
