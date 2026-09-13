@@ -1,0 +1,2 @@
+# PlayWright pipeline — stdlib only, no third-party dependencies declared.
+# (No requirements.txt existed in the source repo; imports verified stdlib + relative.)
