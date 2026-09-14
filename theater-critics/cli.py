@@ -1,48 +1,36 @@
 #!/usr/bin/env python3
-"""CLI interface for Theater Critics Multi-Agent System.
-
-Allows interactive scene analysis with rotating critic ensemble.
+"""
+CLI interface for Theater Critics Multi-Agent System
+Allows interactive scene analysis with rotating critic ensemble
 """
 
-import argparse
 import asyncio
+import argparse
 import json
+from main import SceneData, CriticEnsemble, ConsensusAnalyzer, print_review_summary
 
-from constants import (
-    CLI_CRITICS_COUNT_RANGE,
-    DEBUG_LOG_LEVEL,
-    DEFAULT_LOG_LEVEL,
-    DEFAULT_ROTATING_CRITICS_COUNT,
-    JSON_INDENT,
-    MAX_ROTATING_CRITICS,
-    MIN_ROTATING_CRITICS,
-    SEPARATOR_LINE_LENGTH,
-)
 from logging_config import get_logger, setup_logging
-from main import ConsensusAnalyzer, CriticEnsemble, SceneData, print_review_summary
-
 
 class TheaterCriticsInterface:
-    """Interactive CLI for theater critics system."""
-
+    """Interactive CLI for theater critics system"""
+    
     def __init__(self):
-        """Initialize the CLI interface with critic ensemble."""
         self.ensemble = CriticEnsemble()
-
+    
     def create_scene_interactive(self) -> SceneData:
-        """Interactive scene creation."""
+        """Interactive scene creation"""
         print("\n🎭 CREATE NEW SCENE FOR ANALYSIS")
-        print("=" * SEPARATOR_LINE_LENGTH)
-
+        print("="*50)
+        
         title = input("Scene Title: ").strip()
         musical = input("Musical Name: ").strip()
         description = input("Scene Description: ").strip()
-
+        
         print("\nOptional Details (press Enter to skip):")
         lyrics = input("Lyrics: ").strip() or None
         stage_directions = input("Stage Directions: ").strip() or None
         character_notes = input("Character Notes: ").strip() or None
-
+        
         return SceneData(
             title=title,
             musical=musical,
@@ -51,161 +39,188 @@ class TheaterCriticsInterface:
             stage_directions=stage_directions,
             character_notes=character_notes
         )
-
+    
     def load_scene_from_file(self, filepath: str) -> SceneData:
-        """Load scene from JSON file."""
+        """Load scene from JSON file"""
         with open(filepath, 'r') as f:
             data = json.load(f)
         return SceneData(**data)
-
+    
     def save_scene_to_file(self, scene: SceneData, filepath: str):
-        """Save scene to JSON file."""
+        """Save scene to JSON file"""
         with open(filepath, 'w') as f:
-            json.dump(scene.__dict__, f, indent=JSON_INDENT)
-
-    async def analyze_scene_async(self, scene: SceneData, num_critics: int = DEFAULT_ROTATING_CRITICS_COUNT):
-        """Analyze scene with critic ensemble."""
+            json.dump(scene.__dict__, f, indent=2)
+        print(f"💾 Scene saved to {filepath}")
+    
+    async def analyze_scene(self, scene: SceneData, num_critics: int = 3) -> tuple:
+        """Analyze scene with critic ensemble"""
         reviews = await self.ensemble.review_scene(scene, num_critics)
         consensus = ConsensusAnalyzer.calculate_consensus(reviews)
-        print_review_summary(reviews, consensus)
-
-    def list_critics(self):
-        """List all available critics and their specialties."""
-        print("\n🎭 AVAILABLE CRITICS")
-        print("=" * SEPARATOR_LINE_LENGTH)
+        return reviews, consensus
+    
+    def list_available_critics(self):
+        """List all available critics and their specialties"""
+        print("\n🎬 AVAILABLE CRITICS")
+        print("="*50)
         for critic_type, critic in self.ensemble.critics.items():
-            print(f"🎬 {critic.name}")
+            specialty_icon = {
+                "primary": "🎭", "academic": "📚", "popular": "⭐",
+                "experimental": "🎨", "commercial": "💰", "emotion": "❤️"
+            }.get(critic_type.value, "🎪")
+            
+            print(f"{specialty_icon} {critic.name}")
             print(f"   Type: {critic_type.value.title()}")
             print(f"   Model: {critic.model}")
             print(f"   Specialty: {critic.specialty}")
             print()
 
-
 def create_sample_scenes():
-    """Create sample scenes for testing."""
-    samples = [
-        {
-            "title": "Defying Gravity",
-            "musical": "Wicked",
-            "description": "Elphaba's climactic moment of self-realization",
-            "lyrics": "Something has changed within me...",
-            "stage_directions": "Elphaba rises above the stage",
-            "character_notes": "Transformation from outcast to empowered"
-        },
-        {
-            "title": "Memory",
-            "musical": "Cats",
-            "description": "Grizabella's haunting solo",
-            "lyrics": "Memory, all alone in the moonlight...",
-            "stage_directions": "Spotlight on Grizabella center stage",
-            "character_notes": "Longing for acceptance and past beauty"
-        },
-        {
-            "title": "One Day More",
-            "musical": "Les Misérables",
-            "description": "Act I finale with full ensemble",
-            "lyrics": "One day more, another day another destiny...",
-            "stage_directions": "Multiple levels with full company",
-            "character_notes": "Multiple character arcs converging"
-        }
-    ]
-
-    for sample in samples:
-        filename = f"sample_{sample['title'].lower().replace(' ', '_')}.json"
-        with open(filename, 'w') as f:
-            json.dump(sample, f, indent=JSON_INDENT)
-        print(f"Created {filename}")
-
+    """Create sample scenes for testing"""
+    scenes = {
+        "defying_gravity": SceneData(
+            title="Defying Gravity",
+            musical="Wicked",
+            description="Elphaba's climactic moment of self-realization and defiance at the end of Act I",
+            lyrics="""Something has changed within me
+Something is not the same
+I'm through with playing by the rules
+Of someone else's game""",
+            stage_directions="Elphaba rises above the stage on a mechanical lift, cape billowing",
+            character_notes="Elphaba transforms from outcast to empowered individual"
+        ),
+        
+        "memory": SceneData(
+            title="Memory",
+            musical="Cats",
+            description="Grizabella's haunting ballad about lost youth and longing for acceptance",
+            lyrics="""Memory, all alone in the moonlight
+I can smile at the old days
+I was beautiful then""",
+            stage_directions="Lone spotlight on Grizabella center stage, other cats watch from shadows",
+            character_notes="Grizabella's desperate plea for understanding and redemption"
+        ),
+        
+        "one_day_more": SceneData(
+            title="One Day More",
+            musical="Les Misérables",
+            description="Act I finale bringing together all storylines before the revolution",
+            lyrics="""One day more!
+Another day, another destiny
+This never-ending road to Calvary""",
+            stage_directions="Full company on stage in tableaux, building to revolutionary fervor",
+            character_notes="Each character expresses their personal stakes in the coming conflict"
+        )
+    }
+    
+    # Save sample scenes
+    for name, scene in scenes.items():
+        with open(f"sample_{name}.json", 'w') as f:
+            json.dump(scene.__dict__, f, indent=2)
+    
+    print(f"📁 Created {len(scenes)} sample scenes:")
+    for name in scenes.keys():
+        print(f"   - sample_{name}.json")
 
 async def main():
-    """Main CLI function."""
-    # Setup logging
-    setup_logging(level=DEFAULT_LOG_LEVEL, log_file="theater_critics_cli.log")
+    setup_logging(log_file="theater_critics_cli.log")
     logger = get_logger()
-    
-    parser = argparse.ArgumentParser(description="Theater Critics Analysis System")
-    parser.add_argument(
-        "--interactive", "-i", action="store_true",
-        help="Interactive mode for creating scenes"
-    )
-    parser.add_argument(
-        "--file", "-f", type=str,
-        help="Load scene from JSON file"
-    )
-    parser.add_argument(
-        "--critics", "-c", type=int, default=DEFAULT_ROTATING_CRITICS_COUNT,
-        help=f"Number of rotating critics ({MIN_ROTATING_CRITICS}-{MAX_ROTATING_CRITICS})"
-    )
-    parser.add_argument(
-        "--save", "-s", type=str,
-        help="Save scene to file after creation"
-    )
-    parser.add_argument(
-        "--list-critics", "-l", action="store_true",
-        help="List all available critics"
-    )
-    parser.add_argument(
-        "--create-samples", action="store_true",
-        help="Create sample scene files"
-    )
-    parser.add_argument(
-        "--debug", action="store_true",
-        help="Enable debug logging"
-    )
 
-    args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="Theater Critics Multi-Agent System")
+    parser.add_argument("--interactive", "-i", action="store_true", 
+                       help="Interactive mode for creating scenes")
+    parser.add_argument("--file", "-f", type=str, 
+                       help="Load scene from JSON file")
+    parser.add_argument("--critics", "-c", type=int, default=3,
+                       help="Number of rotating critics (1-5)")
+    parser.add_argument("--list-critics", action="store_true",
+                       help="List available critics and their specialties")
+    parser.add_argument("--create-samples", action="store_true",
+                       help="Create sample scene files")
+    parser.add_argument("--save", "-s", type=str,
+                       help="Save scene to JSON file")
+    parser.add_argument("--debug", action="store_true",
+                       help="Enable debug logging")
     
+    args = parser.parse_args()
+
     if args.debug:
-        setup_logging(level=DEBUG_LOG_LEVEL, log_file="theater_critics_cli_debug.log")
-        logger = get_logger()
+        setup_logging(level="DEBUG", log_file="theater_critics_cli_debug.log")
         logger.debug("Debug logging enabled")
 
     interface = TheaterCriticsInterface()
+    
+    if args.list_critics:
+        logger.info("Listing available critics")
+        interface.list_available_critics()
+        return
 
     if args.create_samples:
         logger.info("Creating sample scene files")
         create_sample_scenes()
         return
-
-    if args.list_critics:
-        logger.info("Listing available critics")
-        interface.list_critics()
-        return
-
-    # Determine scene source
-    if args.interactive:
-        logger.info("Starting interactive scene creation")
-        scene = interface.create_scene_interactive()
-        if args.save:
-            interface.save_scene_to_file(scene, args.save)
-            logger.info(f"Scene saved to {args.save}")
-    elif args.file:
+    
+    # Get scene data
+    scene = None
+    if args.file:
         try:
             scene = interface.load_scene_from_file(args.file)
             logger.info(f"Loaded scene from {args.file}")
-        except (FileNotFoundError, json.JSONDecodeError) as e:
-            logger.error(f"Error loading file: {e}")
+            print(f"📂 Loaded scene from {args.file}")
+        except FileNotFoundError:
+            logger.error(f"File not found: {args.file}")
+            print(f"❌ File not found: {args.file}")
             return
+        except json.JSONDecodeError:
+            logger.error(f"Invalid JSON file: {args.file}")
+            print(f"❌ Invalid JSON file: {args.file}")
+            return
+    
+    elif args.interactive:
+        scene = interface.create_scene_interactive()
+        
+        if args.save:
+            interface.save_scene_to_file(scene, args.save)
+            logger.info(f"Scene saved to {args.save}")
+
     else:
-        # Default: Use Defying Gravity sample
+        # Default to Defying Gravity example
         logger.info("Using default Defying Gravity scene")
         scene = SceneData(
             title="Defying Gravity",
-            musical="Wicked",
-            description="Elphaba's climactic moment of self-realization and defiance",
+            musical="Wicked", 
+            description="Elphaba's climactic moment of self-realization and defiance at the end of Act I",
             lyrics="""Something has changed within me
 Something is not the same
 I'm through with playing by the rules
 Of someone else's game""",
-            stage_directions="Elphaba rises above the stage on a mechanical lift",
-            character_notes="Transformation from outcast to empowered individual"
+            stage_directions="Elphaba rises above the stage on a mechanical lift, cape billowing",
+            character_notes="Elphaba transforms from outcast to empowered individual"
         )
+    
+    if scene:
+        # Validate number of critics
+        num_critics = max(1, min(5, args.critics))
+        
+        # Analyze scene
+        logger.info(f"Starting analysis with {num_critics} critics")
+        reviews, consensus = await interface.analyze_scene(scene, num_critics)
+        logger.info("Analysis complete")
 
-    # Analyze the scene
-    logger.info(f"Starting analysis with {args.critics} critics")
-    await interface.analyze_scene_async(scene, args.critics)
-    logger.info("Analysis complete")
-
+        # Print results
+        print_review_summary(reviews, consensus)
+        
+        # Save results if requested
+        if args.save and not args.interactive:
+            results = {
+                "scene": scene.__dict__,
+                "reviews": [review.__dict__ for review in reviews],
+                "consensus": consensus
+            }
+            result_file = args.save.replace('.json', '_results.json')
+            with open(result_file, 'w') as f:
+                json.dump(results, f, indent=2, default=str)
+            logger.info(f"Results saved to {result_file}")
+            print(f"\n💾 Results saved to {result_file}")
 
 if __name__ == "__main__":
     asyncio.run(main())
