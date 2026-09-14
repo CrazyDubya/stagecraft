@@ -9,6 +9,8 @@ import argparse
 import json
 from main import SceneData, CriticEnsemble, ConsensusAnalyzer, print_review_summary
 
+from logging_config import get_logger, setup_logging
+
 class TheaterCriticsInterface:
     """Interactive CLI for theater critics system"""
     
@@ -120,6 +122,9 @@ This never-ending road to Calvary""",
         print(f"   - sample_{name}.json")
 
 async def main():
+    setup_logging(log_file="theater_critics_cli.log")
+    logger = get_logger()
+
     parser = argparse.ArgumentParser(description="Theater Critics Multi-Agent System")
     parser.add_argument("--interactive", "-i", action="store_true", 
                        help="Interactive mode for creating scenes")
@@ -133,16 +138,24 @@ async def main():
                        help="Create sample scene files")
     parser.add_argument("--save", "-s", type=str,
                        help="Save scene to JSON file")
+    parser.add_argument("--debug", action="store_true",
+                       help="Enable debug logging")
     
     args = parser.parse_args()
-    
+
+    if args.debug:
+        setup_logging(level="DEBUG", log_file="theater_critics_cli_debug.log")
+        logger.debug("Debug logging enabled")
+
     interface = TheaterCriticsInterface()
     
     if args.list_critics:
+        logger.info("Listing available critics")
         interface.list_available_critics()
         return
-    
+
     if args.create_samples:
+        logger.info("Creating sample scene files")
         create_sample_scenes()
         return
     
@@ -151,11 +164,14 @@ async def main():
     if args.file:
         try:
             scene = interface.load_scene_from_file(args.file)
+            logger.info(f"Loaded scene from {args.file}")
             print(f"📂 Loaded scene from {args.file}")
         except FileNotFoundError:
+            logger.error(f"File not found: {args.file}")
             print(f"❌ File not found: {args.file}")
             return
         except json.JSONDecodeError:
+            logger.error(f"Invalid JSON file: {args.file}")
             print(f"❌ Invalid JSON file: {args.file}")
             return
     
@@ -164,9 +180,11 @@ async def main():
         
         if args.save:
             interface.save_scene_to_file(scene, args.save)
-    
+            logger.info(f"Scene saved to {args.save}")
+
     else:
         # Default to Defying Gravity example
+        logger.info("Using default Defying Gravity scene")
         scene = SceneData(
             title="Defying Gravity",
             musical="Wicked", 
@@ -184,8 +202,10 @@ Of someone else's game""",
         num_critics = max(1, min(5, args.critics))
         
         # Analyze scene
+        logger.info(f"Starting analysis with {num_critics} critics")
         reviews, consensus = await interface.analyze_scene(scene, num_critics)
-        
+        logger.info("Analysis complete")
+
         # Print results
         print_review_summary(reviews, consensus)
         
@@ -199,6 +219,7 @@ Of someone else's game""",
             result_file = args.save.replace('.json', '_results.json')
             with open(result_file, 'w') as f:
                 json.dump(results, f, indent=2, default=str)
+            logger.info(f"Results saved to {result_file}")
             print(f"\n💾 Results saved to {result_file}")
 
 if __name__ == "__main__":

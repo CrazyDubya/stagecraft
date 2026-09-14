@@ -13,6 +13,8 @@ from typing import Dict, List, Optional, Tuple
 import asyncio
 import httpx
 
+from logging_config import get_logger
+
 
 class CriticType(Enum):
     PRIMARY = "primary"
@@ -68,12 +70,18 @@ class TheaterCritic:
 
     async def analyze_scene(self, scene: SceneData) -> CriticReview:
         """Analyze a musical theater scene from this critic's perspective"""
+        logger = get_logger()
+        logger.info(f"Starting analysis for scene: {scene.title} from {scene.musical}")
+
         prompt = self._build_analysis_prompt(scene)
 
         try:
             response = await self._query_ollama(prompt)
-            return self._parse_response(response, scene)
+            result = self._parse_response(response, scene)
+            logger.info(f"Successfully analyzed scene: {scene.title} with score {result.scores.overall}")
+            return result
         except Exception as e:
+            logger.error(f"Analysis failed for scene {scene.title}: {str(e)}")
             return self._create_error_review(str(e))
 
     def _build_analysis_prompt(self, scene: SceneData) -> str:
@@ -152,6 +160,9 @@ Evaluate how well the scene conveys emotion and advances character arcs.
 
     async def _query_ollama(self, prompt: str) -> str:
         """Send prompt to Ollama and get response"""
+        logger = get_logger()
+        logger.debug(f"Querying Ollama model: {self.model}")
+
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
                 response = await client.post(
@@ -160,17 +171,21 @@ Evaluate how well the scene conveys emotion and advances character arcs.
                 )
                 response.raise_for_status()
                 result = response.json()["response"]
-                print(f"✅ {self.name} analysis complete")
+                logger.debug(f"Received response from {self.model}: {len(result)} characters")
                 return result
         except httpx.TimeoutException:
+            logger.error(f"Timeout waiting for {self.model}")
             raise Exception(f"Timeout waiting for {self.model}")
         except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error {e.response.status_code} from {self.model}: {e.response.text}")
             raise Exception(f"HTTP error {e.response.status_code}: {e.response.text}")
         except Exception as e:
+            logger.error(f"Failed to query {self.model}: {str(e)}")
             raise Exception(f"Failed to query {self.model}: {str(e)}")
 
     def _parse_response(self, response: str, scene: SceneData) -> CriticReview:
         """Parse Ollama response into CriticReview object"""
+        logger = get_logger()
         try:
             # Try to extract JSON from response if it contains other text
             response = response.strip()
@@ -182,8 +197,10 @@ Evaluate how well the scene conveys emotion and advances character arcs.
             if start_idx != -1 and end_idx > start_idx:
                 json_str = response[start_idx:end_idx]
                 data = json.loads(json_str)
+                logger.debug(f"Successfully parsed JSON response from {self.name}")
             else:
                 # If no JSON found, create fallback review
+                logger.warning(f"No JSON found in response from {self.name}, using fallback")
                 return self._create_fallback_review(response)
 
             scores = ReviewScore(
@@ -207,6 +224,7 @@ Evaluate how well the scene conveys emotion and advances character arcs.
                 specialty_analysis=data["specialty_analysis"],
             )
         except (json.JSONDecodeError, KeyError) as e:
+            logger.warning(f"Failed to parse JSON response from {self.name}: {str(e)}")
             return self._create_fallback_review(response)
 
     def _create_fallback_review(self, response: str) -> CriticReview:
@@ -311,22 +329,25 @@ class CriticEnsemble:
         self, scene: SceneData, num_rotating_critics: int = 3
     ) -> List[CriticReview]:
         """Get reviews from primary critic and rotating ensemble"""
-        print(f"🎭 Analyzing scene: {scene.title} from {scene.musical}")
-        print(f"📝 Primary critic: {self.primary_critic.name}")
+        logger = get_logger()
+        logger.info(f"Starting ensemble analysis for scene: {scene.title} from {scene.musical}")
+        logger.info(f"Primary critic: {self.primary_critic.name}")
 
         # Always include primary critic
         reviews = []
 
         # Get rotating critics
         rotating_critics = self.select_rotating_critics(num_rotating_critics)
-        print(f"🔄 Rotating critics: {', '.join(c.name for c in rotating_critics)}")
+        critic_names = [c.name for c in rotating_critics]
+        logger.info(f"Selected rotating critics: {', '.join(critic_names)}")
 
         # Run all analyses concurrently
         all_critics = [self.primary_critic] + rotating_critics
         tasks = [critic.analyze_scene(scene) for critic in all_critics]
 
-        print("⏳ Running critic analyses...")
+        logger.info("Starting concurrent critic analyses...")
         reviews = await asyncio.gather(*tasks)
+        logger.info(f"Completed ensemble analysis with {len(reviews)} reviews")
 
         return reviews
 
