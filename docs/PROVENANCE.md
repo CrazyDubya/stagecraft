@@ -1,6 +1,7 @@
 # PROVENANCE — stagecraft
 
 Clean-copy consolidation of the theatre/performance cluster, executed 2026-09-13.
+Extended 2026-09-14 with courthouse (wave 5).
 Each entry maps a subtree in this repo to its source repository and the exact
 commit it was copied from. Source repos were archived (not deleted) after
 verification; their full histories remain available there.
@@ -21,6 +22,7 @@ Full tree copied (framework package, CLI, tests, docs, examples).
 | `stage3d/theater-stage/` | `CrazyDubya/theater-stage` → `projects/scratch/` | `b5770511fe950a3491475220444fcba17278a1f6` (main) | Three.js 3D stage app kept as JS subproject with its own package.json |
 | `apps/dramas-fm/` | `CrazyDubya/dramas-fm` | `e1f56dd672a19dacbbb76c40e73e39f6c973d7f0` (dev) | Next.js 15 radio-drama platform kept intact with its own package.json and CI; `.env.local.example` contains a real Cloudflare **account ID** (identifier, not a secret) — token field is a placeholder |
 | `theater-critics/` | `CrazyDubya/theater-critics-system` | `f2c524437ed23dd62c01ef7d7445c040a6f950c4` (experiment/ollama-integration, default) | The `theater-critics-system/` subtree only (231 files): multi-agent critic ensemble (Ollama), 18 evaluation dimensions, `playwright_export.py` ties into `pipeline/playwright/`; committed `__pycache__` dirs excluded as build artifacts. NOT copied: `prison/` (a duplicate of the prison-simulation content already consolidated into `gamevault` as `games/prison-simulation/`), root README.md, `git-organization-strategy.md` (generic doc also present in git-managed/git-workflow-project) |
+| `courthouse/` | `CrazyDubya/courthouse` | `71b2304ddf878bada4f74ef05870d9761eb2ac95` (main) | Full tree copied (152 files): LLM Courtroom Simulator — multi-agent 3D courtroom drama (Three.js/React frontend, Express backend with Ollama/OpenAI providers); user takes judge/attorney/witness roles; root + backend vitest suites and Playwright e2e kept intact |
 
 ## Requirements mapping
 
@@ -40,3 +42,14 @@ Public — all absorbed sources were public.
 - Test baselines recorded pre-merge and re-run post-merge; results in the
   consolidation report. Failures match baselines exactly.
 - theater-critics baseline (2026-09-13): 49 passed, 1 failed (`test_single.py::test_single` — async test without plugin support), 4 errors (`tests/test_api_integration.py` — unresolvable fixtures); re-run post-merge pending.
+- courthouse baseline (2026-09-14, pre-merge, `npx vitest run` from repo root):
+  22 test files passed, 593 tests passed, 5 skipped, 0 failed. The 5 skips are
+  the documented ones in `SKIPPED_TESTS.md` (4 backend WebSocket LLM-integration
+  tests requiring a live Ollama service + 1 frontend ProceedingsEngine phase
+  test requiring LLM services).
+- courthouse secret scan (2026-09-14, all 152 files): no real secrets. 12
+  pattern hits, all non-actionable — a doc placeholder (`apiKey: <redacted>` in
+  `SKIPPED_TESTS.md`), test fixtures (`test-key`, `invalid-key` in
+  `backend/src/routes/__tests__/llm.test.ts`), a Joi validation schema field,
+  and `config.apiKey || process.env.*_API_KEY` env-var references in
+  `LLMService.ts` / `LLMProvider.ts`.
