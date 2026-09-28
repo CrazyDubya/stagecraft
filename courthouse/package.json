@@ -35,7 +35,7 @@
     "@tailwindcss/postcss": "^4.1.12",
     "@types/three": "^0.179.0",
     "@vitejs/plugin-react": "^5.0.1",
-    "axios": "^1.18.0",
+    "axios": "^1.20.0",
     "framer-motion": "^12.23.12",
     "ollama": "^0.5.17",
     "openai": "^5.13.1",
@@ -45,7 +45,7 @@
     "react-router-dom": "^7.18.4",
     "three": "^0.179.1",
     "typescript": "^5.9.2",
-    "vite": "^7.3.6",
+    "vite": "^8.3.1",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
@@ -62,6 +62,6 @@
     "jsdom": "^26.1.0",
     "postcss": "^8.5.28",
     "tailwindcss": "^4.1.12",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.2"
   }
 }
