@@ -261,7 +261,7 @@ class PlaywrightExporter:
         report.append(f"📋 PLAYWRIGHT RECOMMENDATIONS")
         report.append(f"{'='*80}")
         
-        recommendations = self.generate_playwright_recommendations(scene_title, analysis_data)
+        recommendations = self.generate_playwright_recommendations(scene_title, analysis_data, musical_name)
         for rec in recommendations:
             report.append(f"• {rec}")
         
@@ -287,7 +287,8 @@ class PlaywrightExporter:
         
         return None
 
-    def generate_playwright_recommendations(self, scene_title: str, analysis_data: Dict) -> List[str]:
+    def generate_playwright_recommendations(self, scene_title: str, analysis_data: Dict,
+                                            musical_name: str = "") -> List[str]:
         """Generate actionable recommendations for playwright."""
         recommendations = []
         
@@ -297,7 +298,7 @@ class PlaywrightExporter:
         strength_patterns = []
         
         for analysis_type, data in analysis_data.items():
-            scene_data = self.find_scene_in_analysis(scene_title, "", data)
+            scene_data = self.find_scene_in_analysis(scene_title, musical_name, data)
             if scene_data and "scores" in scene_data:
                 scores = scene_data["scores"]
                 if isinstance(scores, dict):
