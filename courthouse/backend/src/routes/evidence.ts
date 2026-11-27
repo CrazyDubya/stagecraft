@@ -296,7 +296,9 @@ export default function createEvidenceRoutes() {
       }
 
       const filename = path.basename(evidence.filePath);
-      res.setHeader('Content-Disposition', `attachment; filename="${evidence.title || filename}"`);
+      // res.attachment() quotes/escapes the name and adds filename* for non-Latin-1 characters;
+      // interpolating the user-supplied title into the header threw on characters like curly quotes.
+      res.attachment(evidence.title || filename);
       res.sendFile(path.resolve(evidence.filePath));
       
     } catch (error) {
